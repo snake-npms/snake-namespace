@@ -1,0 +1,14 @@
+{
+  "name": "snake-namespace",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha 'test/index.js' --timeout 9000 --slow 100"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
