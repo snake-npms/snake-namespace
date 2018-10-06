@@ -1,15 +1,28 @@
 const asyncHooks = require('async_hooks')
 // const fs = require('fs')
 let namespace = {}
+function emptyObject(object) {
+	if (object) {
+		let keys = Object.keys(object)
+		for (let key of keys) {
+			if (/\d/i.test(key)) {
+				if (object[key]) {
+					emptyObject(object[key])
+				}
+				delete namespace[key]
+			}
+		}
+	}
+}
 class SnakeNamespace {
 	static async run (cb) {
 		let rootAsyncId = asyncHooks.executionAsyncId()
-		namespace[rootAsyncId] = namespace[rootAsyncId] || {__key__: rootAsyncId}
+		namespace[rootAsyncId] = namespace[rootAsyncId] || {}
 		let hook = asyncHooks.createHook({
 			init (asyncId, type, triggerAsyncId, resource) {
 				// fs.writeSync(1, `init: asyncId-${asyncId},type-${type},triggerAsyncId-${triggerAsyncId}, ${resource}\n`);
 				if (namespace[triggerAsyncId]) {
-					namespace[triggerAsyncId][asyncId] = namespace[triggerAsyncId][asyncId] ||  {__key__: asyncId, __parent_snake_namespace_object__: namespace[triggerAsyncId]}
+					namespace[triggerAsyncId][asyncId] = namespace[triggerAsyncId][asyncId] ||  {__parent_snake_namespace_object__: namespace[triggerAsyncId]}
 					namespace[asyncId] = namespace[triggerAsyncId][asyncId]
 				}
 			},
@@ -32,22 +45,19 @@ class SnakeNamespace {
 			}
 		});
 		hook.enable()
-		let result = await cb()
-		hook.disable()
-		empltyObject(namespace[rootAsyncId])
-		delete namespace[rootAsyncId]
-		function empltyObject(object) {
-			if (object) {
-				let keys = Object.keys(object)
-				for (let key of keys) {
-					if (/\d/i.test(key)) {
-						if (object[key]) {
-							empltyObject(object[key])
-						}
-						delete namespace[key]
-					}
-				}
-			}
+		let result = undefined
+		let error = null
+		try {
+			result = await cb()
+			hook.disable()
+		} catch (err) {
+			error = err
+		} finally {
+			emptyObject(namespace[rootAsyncId])
+			delete namespace[rootAsyncId]
+		}
+		if (error) {
+			throw error
 		}
 		return result
 	}
