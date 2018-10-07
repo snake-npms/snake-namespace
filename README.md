@@ -2,6 +2,8 @@ snake-namespace
 
 set `vars` to sub stack
 
+> To prevent errors, Node Version Best `>= 10.4.0`
+
 ### Install
 ```
 $ npm install snake-namespace
