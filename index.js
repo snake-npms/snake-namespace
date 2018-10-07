@@ -17,6 +17,9 @@ function emptyObject(object) {
 class SnakeNamespace {
 	static async run (cb) {
 		let rootAsyncId = asyncHooks.executionAsyncId()
+		if (rootAsyncId === 0) {
+			console.warn('may your node version not support async_hooks fine')
+		}
 		namespace[rootAsyncId] = namespace[rootAsyncId] || {}
 		let hook = asyncHooks.createHook({
 			init (asyncId, type, triggerAsyncId, resource) {
@@ -35,11 +38,13 @@ class SnakeNamespace {
 			destroy(asyncId) {
 				// fs.writeSync(1, `destroy: asyncId-${asyncId}\n`);
 				if (asyncId !== rootAsyncId) {
-					if (namespace[asyncId]) {
-						if (namespace[asyncId]['__parent_snake_namespace_object__']) {
-							delete namespace[asyncId]['__parent_snake_namespace_object__'][asyncId]
-						}
-					}
+					// Node 10.4.0 test, some init asyncId can not get destroy. delete from parent, asyncId children may memory leak
+					// So if asyncId no children can delete from parent, Or later delete by rootAsync, here use rootAsync delete
+					// if (namespace[asyncId]) {
+					// 	if (namespace[asyncId]['__parent_snake_namespace_object__']) {
+					// 		delete namespace[asyncId]['__parent_snake_namespace_object__'][asyncId]
+					// 	}
+					// }
 					delete namespace[asyncId]
 				}
 			}
@@ -64,6 +69,9 @@ class SnakeNamespace {
 	
 	static set (key, value) {
 		let asyncId = asyncHooks.executionAsyncId()
+		if (asyncId === 0) {
+			console.warn('may your node version not support async_hooks fine')
+		}
 		if (namespace[asyncId]) {
 			namespace[asyncId][key] = value
 		}
@@ -71,6 +79,9 @@ class SnakeNamespace {
 	
 	static get (key) {
 		let asyncId = asyncHooks.executionAsyncId()
+		if (asyncId === 0) {
+			console.warn('may your node version not support async_hooks fine')
+		}
 		let object = namespace[asyncId]
 		let value = undefined
 		while (object) {
