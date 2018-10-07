@@ -36,8 +36,8 @@ async function testKey(key) {
 
 
 describe('test Namespace', function(){
-	it('test 1', async function () {
-		await SnakeNamespace.run(async () => {
+	it('test 1 stack mode', async function () {
+		await SnakeNamespace.runInStackMode(async () => {
 			SnakeNamespace.set('age', 1)
 			assert.equal(1, SnakeNamespace.get('age'))
 
@@ -59,8 +59,8 @@ describe('test Namespace', function(){
 	})
 
 
-	it('test 2', async function () {
-		await SnakeNamespace.run(async () => {
+	it('test 2 stack mode', async function () {
+		await SnakeNamespace.runInStackMode(async () => {
 			SnakeNamespace.set('age', 1)
 			assert.equal(1, SnakeNamespace.get('age'))
 
@@ -82,9 +82,9 @@ describe('test Namespace', function(){
 		})
 	})
 	
-	it('test 3', async function () {
+	it('test 3 stack mode', async function () {
 		let value = undefined
-		let result = await SnakeNamespace.run(async () => {
+		let result = await SnakeNamespace.runInStackMode(async () => {
 			// console.log('---- 11111', asyncHooks.executionAsyncId(), asyncHooks.triggerAsyncId())
 			SnakeNamespace.set('age', 0)
 			// console.log('---- 22222', asyncHooks.executionAsyncId(), asyncHooks.triggerAsyncId())
@@ -173,7 +173,95 @@ describe('test Namespace', function(){
 		assert.equal(result, 'end')
 	})
 	
-	it('test 4', async function () {
+	
+	it('test 4 share mode', async function () {
+		let value = undefined
+		let result = await SnakeNamespace.run(async () => {
+			// console.log('---- 11111', asyncHooks.executionAsyncId(), asyncHooks.triggerAsyncId())
+			SnakeNamespace.set('age', 0)
+			// console.log('---- 22222', asyncHooks.executionAsyncId(), asyncHooks.triggerAsyncId())
+			value = SnakeNamespace.get('age')
+			// console.log(value, '=============', SnakeNamespace._namesapce)
+			assert.equal(value, 0)
+			
+			function test1(key, value) {
+				return new Promise(resolve => {
+					SnakeNamespace.set(key, value)
+					setTimeout(() => {resolve()})
+				})
+			}
+			await test1('age', 1)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 1)
+			
+			function test2(key, value) {
+				return new Promise(resolve => {
+					SnakeNamespace.set(key, value)
+					setTimeout(() => {
+						resolve()
+					})
+				})
+			}
+			await test2('age', 2)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 2)
+			
+			function test3(key, value) {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						SnakeNamespace.set(key, value)
+						let getVal = SnakeNamespace.get('age')
+						assert.equal(getVal, value)
+						resolve()
+					})
+				})
+			}
+			await test3('age', 3)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 3)
+			
+			function test4(key, value) {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						SnakeNamespace.set(key, value)
+						let getVal = SnakeNamespace.get('age')
+						assert.equal(getVal, value)
+						setTimeout(() => {
+							let getVal = SnakeNamespace.get('age')
+							assert.equal(getVal, value)
+							resolve()
+						})
+					})
+				})
+			}
+			await test4('age', 4)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 4)
+			
+			function test5(key, value) {
+				SnakeNamespace.set(key, value)
+			}
+			test5('age', 50)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 50)
+			
+			function test6(key, value) {
+				SnakeNamespace.set(key, value)
+				return new Promise(resolve => {
+					setTimeout(() => {resolve()})
+				})
+			}
+			await test6('age', 60)
+			value = SnakeNamespace.get('age')
+			assert.equal(value, 60)
+			
+			return 'end'
+		})
+		assert.equal(result, 'end')
+	})
+	
+	
+	it('test namespace', async function () {
 		let namespace = SnakeNamespace._namesapce
 		assert.equal(Object.keys(namespace).length, 0)
 	})

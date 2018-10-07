@@ -1,4 +1,8 @@
 const asyncHooks = require('async_hooks')
+const ModeEnum = {
+	SHARE: 0,
+	STACK: 1
+}
 // const fs = require('fs')
 let namespace = {}
 function emptyObject(object) {
@@ -10,23 +14,44 @@ function emptyObject(object) {
 					emptyObject(object[key])
 				}
 				delete namespace[key]
+			} else if (key === '__asyncIds__' && Array.isArray(object[key])) {
+				for (let asyncId of object[key]) {
+					delete namespace[asyncId]
+				}
 			}
 		}
 	}
 }
 class SnakeNamespace {
-	static async run (cb) {
+	
+	static async runInShareMode (cb) {
+		return await this.run(cb, ModeEnum.SHARE)
+	}
+	
+	static async runInStackMode (cb) {
+		return await this.run(cb, ModeEnum.STACK)
+	}
+	
+	static async run (cb, mode = ModeEnum.SHARE) {
 		let rootAsyncId = asyncHooks.executionAsyncId()
-		if (rootAsyncId === 0) {
-			console.warn('may your node version not support async_hooks fine')
-		}
+		console.assert(rootAsyncId === 0, 'Please Update your node version.')
 		namespace[rootAsyncId] = namespace[rootAsyncId] || {}
+		if (mode === ModeEnum.SHARE) {
+			namespace[rootAsyncId]['__asyncIds__'] = []
+		}
 		let hook = asyncHooks.createHook({
 			init (asyncId, type, triggerAsyncId, resource) {
 				// fs.writeSync(1, `init: asyncId-${asyncId},type-${type},triggerAsyncId-${triggerAsyncId}, ${resource}\n`);
 				if (namespace[triggerAsyncId]) {
-					namespace[triggerAsyncId][asyncId] = namespace[triggerAsyncId][asyncId] ||  {__parent_snake_namespace_object__: namespace[triggerAsyncId]}
-					namespace[asyncId] = namespace[triggerAsyncId][asyncId]
+					if (mode === ModeEnum.SHARE) {
+						if (namespace[triggerAsyncId]['__asyncIds__']) {
+							namespace[triggerAsyncId]['__asyncIds__'].push(asyncId)
+							namespace[asyncId] = namespace[triggerAsyncId]
+						}
+					} else {
+						namespace[triggerAsyncId][asyncId] = namespace[triggerAsyncId][asyncId] ||  {__parent_snake_namespace_object__: namespace[triggerAsyncId]}
+						namespace[asyncId] = namespace[triggerAsyncId][asyncId]
+					}
 				}
 			},
 			// before(asyncId) {

@@ -8,20 +8,107 @@ set `vars` to sub stack
 ```
 $ npm install snake-namespace
 ``` 
-
 ### Usage
-```
+```bash
 const SnakeNamespace = require('snake-namespace')
+# run() === runInShareMode()
 SnakeNamespace.run(async () => {
+  SnakeNamespace.set('age', 0)
+  # in await function can get age value use SnakeNamespace.get('age')
+  await ....
+})
+
+SnakeNamespace.runInStackMode(async () => {
   SnakeNamespace.set('age', 0)
   in await function can get age value use SnakeNamespace.get('age')
   await ....
 })
 ```
-eg:
+
+### `share mode`  - `recommend`
+```bash
+await SnakeNamespace.run(async () => {
+  SnakeNamespace.set('age', 0)
+  # return 0
+  SnakeNamespace.get('age')
+    
+  function test1(key, value) {
+    return new Promise(resolve => {
+      SnakeNamespace.set(key, value)
+        setTimeout(() => {resolve()})
+    })
+  }
+  await test1('age', 1)
+  # return 1
+  SnakeNamespace.get('age')
+    
+  function test2(key, value) {
+    return new Promise(resolve => {
+      SnakeNamespace.set(key, value)
+      setTimeout(() => {
+        resolve()
+      })
+    })
+  }
+  await test2('age', 2)
+  # return 2
+  SnakeNamespace.get('age')
+
+  function test3(key, value) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        SnakeNamespace.set(key, value)
+        let getVal = SnakeNamespace.get('age')
+        assert.equal(getVal, value)
+        resolve()
+      })
+    })
+  }
+  await test3('age', 3)
+  # return 3
+  SnakeNamespace.get('age')
+    
+  function test4(key, value) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        SnakeNamespace.set(key, value)
+        # return 4
+        SnakeNamespace.get('age')
+        setTimeout(() => {
+          # return 4        
+          let getVal = SnakeNamespace.get('age')
+            resolve()
+        })
+      })
+    })
+  }
+  await test4('age', 4)
+  # return 4
+  SnakeNamespace.get('age')
+    
+  function test5(key, value) {
+    SnakeNamespace.set(key, value)
+  }
+  test5('age', 50)
+  # return 50
+  SnakeNamespace.get('age')
+    
+  function test6(key, value) {
+    SnakeNamespace.set(key, value)
+      return new Promise(resolve => {
+        setTimeout(() => {resolve()})
+    })
+  }
+  await test6('age', 60)
+  # return 60
+  SnakeNamespace.get('age')
+})
+```
+
+### `stack mode`  - `recommend`
 ``` bash
 const SnakeNamespace = require('snake-namespace')
-SnakeNamespace.run(async () => {
+SnakeNamespace.runInStackMode(async () => {
   SnakeNamespace.set('age', 0)
   # return 0, main namespace
   SnakeNamespace.get('age')
