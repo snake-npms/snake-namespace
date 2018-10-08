@@ -1,9 +1,9 @@
 const asyncHooks = require('async_hooks')
+// const fs = require('fs')
 const ModeEnum = {
 	SHARE: 0,
 	STACK: 1
 }
-// const fs = require('fs')
 let namespace = {}
 function emptyObject(object) {
 	if (object) {
@@ -34,15 +34,26 @@ class SnakeNamespace {
 	
 	static async run (cb, mode = ModeEnum.SHARE) {
 		let rootAsyncId = asyncHooks.executionAsyncId()
-		console.assert(rootAsyncId !== 0, '-- Error --: Node Version May Not support SnakeNamespace, Or Check Your Code.')
-		namespace[rootAsyncId] = namespace[rootAsyncId] || {}
-		if (mode === ModeEnum.SHARE) {
-			namespace[rootAsyncId]['__asyncIds__'] = []
+		if (rootAsyncId !== 0) {
+			namespace[rootAsyncId] = namespace[rootAsyncId] || {}
+			if (mode === ModeEnum.SHARE) {
+				namespace[rootAsyncId]['__asyncIds__'] = []
+			}
 		}
 		let hook = asyncHooks.createHook({
 			init (asyncId, type, triggerAsyncId, resource) {
 				// fs.writeSync(1, `init: asyncId-${asyncId},type-${type},triggerAsyncId-${triggerAsyncId}, ${resource}\n`);
-				if (namespace[triggerAsyncId]) {
+				if (rootAsyncId === 0 && asyncId !== 0) {
+					rootAsyncId = asyncId
+					namespace[rootAsyncId] = namespace[rootAsyncId] || {}
+					if (mode === ModeEnum.SHARE) {
+						namespace[rootAsyncId]['__asyncIds__'] = []
+					}
+				}
+				if (triggerAsyncId === 0) {
+					triggerAsyncId = rootAsyncId
+				}
+				if (namespace[triggerAsyncId] && triggerAsyncId !== asyncId) {
 					if (mode === ModeEnum.SHARE) {
 						if (namespace[triggerAsyncId]['__asyncIds__']) {
 							namespace[triggerAsyncId]['__asyncIds__'].push(asyncId)
