@@ -34,7 +34,7 @@ class SnakeNamespace {
 	
 	static async run (cb, mode = ModeEnum.SHARE) {
 		let rootAsyncId = asyncHooks.executionAsyncId()
-		console.assert(rootAsyncId === 0, '== Error ==: Node Version May Not support SnakeNamespace, Or Check Your Code.')
+		console.assert(rootAsyncId !== 0, '-- Error --: Node Version May Not support SnakeNamespace, Or Check Your Code.')
 		namespace[rootAsyncId] = namespace[rootAsyncId] || {}
 		if (mode === ModeEnum.SHARE) {
 			namespace[rootAsyncId]['__asyncIds__'] = []
@@ -94,9 +94,7 @@ class SnakeNamespace {
 	
 	static set (key, value) {
 		let asyncId = asyncHooks.executionAsyncId()
-		if (asyncId === 0) {
-			console.warn('== Warning ==: May Your Node Version not support async_hooks fine')
-		}
+		console.assert(asyncId !== 0, '-- Error --: Node Version May Not support SnakeNamespace, Or Check Your Code.')
 		if (namespace[asyncId]) {
 			namespace[asyncId][key] = value
 		}
