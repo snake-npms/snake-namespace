@@ -14,7 +14,7 @@ function emptyObject(object) {
 					emptyObject(object[key])
 				}
 				delete namespace[key]
-			} else if (key === '__asyncIds__' && Array.isArray(object[key])) {
+			} else if (key === '___snake_namespace_async_ids__' && Array.isArray(object[key])) {
 				for (let asyncId of object[key]) {
 					delete namespace[asyncId]
 				}
@@ -37,7 +37,7 @@ class SnakeNamespace {
 		if (rootAsyncId !== 0) {
 			namespace[rootAsyncId] = namespace[rootAsyncId] || {}
 			if (mode === ModeEnum.SHARE) {
-				namespace[rootAsyncId]['__asyncIds__'] = []
+				namespace[rootAsyncId]['___snake_namespace_async_ids__'] = []
 			}
 		}
 		let hook = asyncHooks.createHook({
@@ -47,7 +47,7 @@ class SnakeNamespace {
 					rootAsyncId = asyncId
 					namespace[rootAsyncId] = namespace[rootAsyncId] || {}
 					if (mode === ModeEnum.SHARE) {
-						namespace[rootAsyncId]['__asyncIds__'] = []
+						namespace[rootAsyncId]['___snake_namespace_async_ids__'] = []
 					}
 				}
 				if (triggerAsyncId === 0) {
@@ -55,8 +55,8 @@ class SnakeNamespace {
 				}
 				if (namespace[triggerAsyncId] && triggerAsyncId !== asyncId) {
 					if (mode === ModeEnum.SHARE) {
-						if (namespace[triggerAsyncId]['__asyncIds__']) {
-							namespace[triggerAsyncId]['__asyncIds__'].push(asyncId)
+						if (namespace[triggerAsyncId]['___snake_namespace_async_ids__']) {
+							namespace[triggerAsyncId]['___snake_namespace_async_ids__'].push(asyncId)
 							namespace[asyncId] = namespace[triggerAsyncId]
 						}
 					} else {
