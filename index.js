@@ -104,7 +104,7 @@ class SnakeNamespace {
 	}
 	
 	static set (key, value) {
-		let asyncId = asyncHooks.executionAsyncId()
+		let asyncId = asyncHooks.executionAsyncId() || asyncHooks.triggerAsyncId()
 		console.assert(asyncId !== 0, '-- Error --: Node Version May Not support SnakeNamespace, Or Check Your Code.')
 		if (namespace[asyncId]) {
 			namespace[asyncId][key] = value
@@ -112,7 +112,7 @@ class SnakeNamespace {
 	}
 	
 	static get (key) {
-		let asyncId = asyncHooks.executionAsyncId()
+		let asyncId = asyncHooks.executionAsyncId() || asyncHooks.triggerAsyncId()
 		let object = namespace[asyncId]
 		let value = undefined
 		while (object) {

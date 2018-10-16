@@ -3,6 +3,7 @@ snake-namespace
 set `vars` to sub stack
 
 > To prevent errors, Node Version Best `>= 10.4.0+`, `9.11.2+`
+> ~~Warning: Lower or equal than 8.12.0 Not Support~~
 
 ### Install
 ```
