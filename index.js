@@ -73,7 +73,7 @@ class SnakeNamespace {
 			// },
 			destroy(asyncId) {
 				// fs.writeSync(1, `destroy: asyncId-${asyncId}\n`);
-				if (asyncId !== rootAsyncId) {
+				// if (asyncId !== rootAsyncId) {
 					// Node 10.4.0 test, some init asyncId can not get destroy. delete from parent, asyncId children may memory leak
 					// So if asyncId no children can delete from parent, Or later delete by rootAsync, here use rootAsync delete
 					// if (namespace[asyncId] && Object.keys(namespace).length === 1 && Object.keys(namespace)[0] === '__parent_snake_namespace_object__') {
@@ -81,8 +81,7 @@ class SnakeNamespace {
 					// 		delete namespace[asyncId]['__parent_snake_namespace_object__'][asyncId]
 					// 	}
 					// }
-					delete namespace[asyncId]
-				}
+				// }
 			}
 		});
 		hook.enable()
